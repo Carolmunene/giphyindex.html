@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>GIPHY API</title>
+
+        <!-- Added a link to Bootstrap-->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        
+        <!-- This links to the jQuery Library -->
+        <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+    	
+    </head>
+
+<body background="https://cmkt-image-prd.global.ssl.fastly.net/0.1.0/ps/1371144/580/412/m1/fpnw/wm1/abstract08-.jpg?1466057159&s=c24ada1c87e59e476ce9ddd590386242"> 
+
+<h4 class="text-center" style="color: lime"><p>CLICK ON A BUTTON TO SEE VARIOUS GIPHS OR UPLOAD FOR A SEARCH OF YOUR CHOICE.(Click on the picture to start or stop animation)
+ </p></h4
+
+<!-- This will be where the 10 buttons are added and displayed. -->
+<div id="buttonItems"></div>
+
+<!-- This is the form to add a space-themed button to the array. -->
+<form>
+    <div class="row">
+        <div class="col-md-3">
+            <input type="text" id="music-input" class="form-control" placeholder="Add Your Music...">
+        </div>
+        <input id="addMusicThing" type="submit" class="btn btn-success" value="Choice #1!">
+        <!-- If there are any error messages, they will appear here -->
+        <span id="entry" style="color: white; background: red"></span>
+    </div>
+</form>
+
+<!-- This is where the ratings and images will be shown when the user clicks a movie button. --> 
+<div id="ratings"></div>
+
+<!-- Beginning of the javascript -->
+<script type="text/javascript">
+    // This is the initial array.
+    var musicStuff = ["Events", "Hip Hop R&B", "Pop", "World Music", "African Music", "Disco Music", "Jazz", "Disco", "Bands", "Indian Music", "Rhythm and Blue", "Dances",];
+    var musicImage = "";
+// This function shows all the buttons at the top of the page.
+function showButtons () {
+    $("#buttonItems").empty();
+    $("#music-input").val("");
+    for (var i = 0; i < musicStuff.length; i++) {
+        var button = $("<button class='btn btn-primary'>");
+        button.addClass("music");
+        button.attr("music-name", musicStuff[i]);
+        button.text(musicStuff[i]);
+        $("#buttonItems").append(button);
+        $("#buttonItems").append(" ");
+    }
+}
+showButtons();
+//User selects their choice of music.
+$("#addMusicThing").on("click", function(event) {
+    $("#entry").empty();
+    event.preventDefault();
+    var musicInput = $("#music-input").val().trim();
+    var musicTerm = $(this).attr("music-name");
+
+    //Testing to see if the 10 selections work.
+    var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + musicInput + "&limit=2&api_key=dc6zaTOxFJmzC";
+        $.ajax({ url: queryURL, method: "GET"}).done(function(response) {
+        if (response.pagination.total_count >= 10) {
+            musicStuff.push(musicInput);
+            showButtons(); }
+        else if (response.pagination.total_count === 0) {
+            $("#entry").html(" Sorry, there were no results for this.  Please try again."); }
+        else if (response.pagination.total_count === 1) { $("#entry").html(" Sorry, there was only 1 result for this.  Please try again."); }
+        else { $("#entry").html(" Sorry, there were only " + response.pagination.total_count + " results for this.  Please try again."); }
+        $("#music-input").val("");
+        });
+});
+$(document).on("click", ".music", display);
+function display() {
+    // This is just to clear out any error message (if there is one)
+    $("#entry").empty();
+    var musicTerm = $(this).attr("music-name");
+    // The GIPHY query has 10 results
+    var queryURL = "http://api.giphy.com/v1/gifs/search?q=" + musicTerm + "&limit=10&api_key=dc6zaTOxFJmzC";
+
+    $.ajax({ url: queryURL, method: "GET"}).done(function(response) {
+        // This runs 10 times (limit is 10 in query) to show all the GIPHY pictures from the website's response.
+        for (var j = 0; j < response.data.length; j++) {
+            
+            // Gets the animated gif URL
+            var active = response.data[j].images.fixed_width.url;
+            // Gets the still gif URL
+            var still = response.data[j].images.fixed_width_still.url;
+            var rating = "Rating: " + (response.data[j].rating).toUpperCase();
+            // Creates the new img item
+            var musicImage = $("<img>");
+            
+            // This changes the text color of ratings to green so it can be seen against the space background image.
+            $("#ratings").css("color", "red");
+            // This creates a new div for the rating so that it maintains the gifs size
+            var ratingDiv = $("<div id='ratingDiv'>" + rating + "</div>");
+            $(ratingDiv).css({"text-align":"center", "font-size":"20px", "width":"200", "display":"block"});
+            musicImage.attr({"active":active, "still":still, "src":still, "state":"still"});
+            // This holds the new div for both rating and the image. Every image will have a rating on top of it.
+            var ratingAndImage = $("<div>");
+            $(ratingAndImage).css({"float":"left"});
+            $(ratingAndImage).prepend(ratingDiv, musicImage);
+            // This adds the rating and image to the page.
+            $("#ratings").prepend(ratingAndImage);
+            // When the user clicks on a picture, this will either start or stop the animation of that picture.
+            $(musicImage).on("click", function(event) {
+                // This is just to clear out any error message (if there is one)
+                $("#entry").empty();
+                
+                var state = $(this).attr("state");
+                var source = $(this).attr("src");
+                if (state === "still") {
+                $(this).attr("src", $(this).attr("active"));
+                $(this).attr("state", "active"); }
+                else {
+                $(this).attr("src", $(this).attr("still"));
+                $(this).attr("state", "still"); } 
+            });
+        }
+   });
+}
+</script>
+</body>
+</html>
