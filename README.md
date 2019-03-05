@@ -5,4 +5,5 @@ You can add new categories of your own if it is not in the 10 - category
 Each gif can be animated by clicking on the picture. They will stop if you click on them a 2nd time.
 Enjoy!
 
+View the website:file:///Users/rosemunene/Desktop/School/homeWork/giphyindex.html
 
